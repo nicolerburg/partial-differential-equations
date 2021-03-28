@@ -48,7 +48,7 @@ class Simulation():
                 + np.roll(mu, 1, axis=0) + np.roll(mu, -1, axis=0) - 4 * mu)
 
 
-##########################################################################################################
+################### Function which control the live visualization #########################################################################
 
     def VisualizationUpdate(self):
         figure, self.data_points = Simulation.CreateFigure(self.size)
@@ -76,7 +76,7 @@ class Simulation():
             if i % 100 == 0:
                 yield self.phi_0
 
-##########################################################################################################
+#################### Function which control the data collection ###############################################################
 
     def DataCollectionUpdate(self):
         self.json_object[TIME] = np.arange(0,self.loops,100).tolist()
@@ -84,9 +84,7 @@ class Simulation():
             self.Update()
             if i % 100 == 0:
                 print(i)
-                free_energy_density = self.a * self.phi_0**2 / 2 * (-1 + self.phi_0**2 / 2) \
-                     + self.c_1/8 * ((np.roll(self.phi_0, -1, axis=1)-np.roll(self.phi_0, 1, axis=1))**2 \
-                                    + (np.roll(self.phi_0, 1, axis=0)-np.roll(self.phi_0, -1, axis=0))**2)
+                free_energy_density = self.CalculateFreeEnergy()
             
                 free_energy = np.sum(free_energy_density)
                 self.json_object[FREE_ENERGY].append(free_energy)
@@ -116,6 +114,11 @@ class Simulation():
         plt.show()
 
 ##########################################################################################################
+
+    def CalculateFreeEnergy(self):
+        return self.a * self.phi_0**2 / 2 * (-1 + self.phi_0**2 / 2) \
+            + self.c_1/8 * ((np.roll(self.phi_0, -1, axis=1)-np.roll(self.phi_0, 1, axis=1))**2 \
+                        + (np.roll(self.phi_0, 1, axis=0)-np.roll(self.phi_0, -1, axis=0))**2)
 
 sim = Simulation()
 
