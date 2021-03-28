@@ -16,6 +16,11 @@ FREE_ENERGY = "Free Energy"
 class Simulation():
 
     def __init__(self):
+        self.choices = { \
+                    "D": [self.DataCollectionUpdate], \
+                    "V": [self.VisualizationUpdate] \
+                }
+
         self.json_object = {}
         self.json_object[TIME] = []
         self.json_object[FREE_ENERGY] = []
@@ -34,9 +39,38 @@ class Simulation():
         # self.c_1 = self.k / self.delta_x ** 2 * self.a
         # self.c_2 = self.M * self.delta_t / self.delta_x ** 2
         self.phi_initial = 0
+
+        self.size = Simulation.ParseInput("Specify the size of the lattice: ", int)
+        self.phi_initial = Simulation.ParseInput("Enter a phi_0 value: ", float)
+        method_choice = Simulation.ParseChoices("Run Visualisation or Data Collection? [V/D]: ", ["V", "D"])
+
         self.phi_0 = np.random.uniform(self.phi_initial-0.1,self.phi_initial+0.1, (self.size,self.size))
-        self.VisualizationUpdate()
+
+        self.choices[method_choice][0]()
+        #self.VisualizationUpdate()
         #self.DataCollectionUpdate()
+
+    # Functions which parse input
+    @staticmethod
+    def ParseInput(prompt, type):
+        try:
+            user_input = type(input(prompt))
+            if user_input <= 1 or user_input >= -1:
+                return user_input
+            else:
+                print("Please enter a between 1 and -1.")
+        except:
+            pass
+        return Simulation.ParseInput(prompt, type)
+
+    @staticmethod
+    def ParseChoices(prompt, options):
+        user_input = input(prompt)
+        if user_input.capitalize() in options:
+            return user_input.capitalize()
+        else:
+            return Simulation.ParseChoices(prompt, options)
+
 
     def Update(self):
         mu = self.a * self.phi_0 * (-1 + self.phi_0**2) \
@@ -102,7 +136,7 @@ class Simulation():
             j = json.load(json_file)
             times = j.get(TIME)
 
-            Simulation.FormatPlot(plt.plot(times, j.get(FREE_ENERGY)), "Free Energy, phi_0 = 0", "Time", "Free Energy")
+            Simulation.FormatPlot(plt.plot(times, j.get(FREE_ENERGY)), "Free Energy", "Time", "Free Energy")
             print("Finished")
 
     # Function that allows for many plots to be made in less space
