@@ -47,8 +47,6 @@ class Simulation():
         self.phi_0 = np.random.uniform(self.phi_initial-0.1,self.phi_initial+0.1, (self.size,self.size))
 
         self.choices[method_choice][0]()
-        #self.VisualizationUpdate()
-        #self.DataCollectionUpdate()
 
     # Functions which parse input
     @staticmethod
@@ -113,6 +111,7 @@ class Simulation():
 #################### Function which control the data collection ###############################################################
 
     def DataCollectionUpdate(self):
+        self.file_path = input("Creat file name for data file. (Do not include .json)") + ".jsonc"
         self.json_object[TIME] = np.arange(0,self.loops,100).tolist()
         for i in range(self.loops):
             self.Update()
@@ -122,8 +121,8 @@ class Simulation():
             
                 free_energy = np.sum(free_energy_density)
                 self.json_object[FREE_ENERGY].append(free_energy)
-        self.SaveData("data.jsonc")
-        self.PlotData("data.jsonc")
+        self.SaveData(self.file_path)
+        self.PlotData(self.file_path)
 
     def SaveData(self, file_path):
         with open(file_path, 'w') as outfile:
@@ -136,7 +135,7 @@ class Simulation():
             j = json.load(json_file)
             times = j.get(TIME)
 
-            Simulation.FormatPlot(plt.plot(times, j.get(FREE_ENERGY)), "Free Energy", "Time", "Free Energy")
+            Simulation.FormatPlot(plt.plot(times, j.get(FREE_ENERGY)), "Free Energy, phi_0 = 0.5", "Time", "Free Energy")
             print("Finished")
 
     # Function that allows for many plots to be made in less space
