@@ -18,8 +18,8 @@ class Simulation():
     def __init__(self):
         self.choices = { \
                     "D": [self.DataCollectionUpdate], \
-                    "J": [self.Jacobi], \
-                    "G": [self.GaussSeidel]
+                    "J": [None, self.Jacobi], \
+                    "G": [self.GaussSeidelInit, self.GaussSeidel]
                 }
 
         self.json_object = {}
@@ -80,14 +80,29 @@ class Simulation():
 
         self.sum_difference = np.sum(np.abs(self.potentials - before_grid))
 
+    def GaussSeidelInit(self):
+        starting_mask = np.indices((self.size, self.size, self.size)).sum(axis=0) % 2
+        self.mask = starting_mask[1:-1, 1:-1, 1:-1]
+
     def GaussSeidel(self):
         before_grid = np.copy(self.potentials)
-        for i in range(1, self.size-1):
-            for j in range(1, self.size-1):
-                for k in range(1, self.size-1):
-                    self.potentials[i, j, k] = 1/6 * (self.potentials[i+1, j, k] + self.potentials[i-1, j, k] \
-                                              + self.potentials[i, j+1, k] + self.potentials[i, j-1, k] \
-                                              + self.potentials[i, j, k+1] + self.potentials[i, j, k-1] + self.charges[i, j, k])
+
+        potential_center = self.potentials[1:-1, 1:-1, 1:-1]
+        charges_center = self.charges[1:-1, 1:-1, 1:-1]
+
+        potential_top = self.potentials[0:-2, 1:-1, 1:-1]
+        potential_bottom = self.potentials[2:, 1:-1,  1:-1]
+        potential_left = self.potentials[1:-1, 0:-2,  1:-1]
+        potential_right = self.potentials[1:-1, 2:, 1:-1]
+        potential_front = self.potentials[1:-1, 1:-1, 0:-2]
+        potential_back = self.potentials[1:-1, 1:-1, 2:]
+
+        potential_center[self.mask==1] = 1/6 * (potential_top[self.mask==1] + potential_bottom[self.mask==1] + potential_left[self.mask==1] + potential_right[self.mask==1] + potential_front[self.mask==1] + potential_back[self.mask==1] + charges_center[self.mask==1])
+
+        potential_center[self.mask==0] = 1/6 * (potential_top[self.mask==0] + potential_bottom[self.mask==0] + potential_left[self.mask==0] + potential_right[self.mask==0] + potential_front[self.mask==0] + potential_back[self.mask==0] + charges_center[self.mask==0])
+
+        self.potentials = np.pad(potential_center, 1)
+
         self.sum_difference = np.sum(np.abs(self.potentials - before_grid))
 
 #################### Function which control the data collection ###############################################################
@@ -95,10 +110,15 @@ class Simulation():
     def DataCollectionUpdate(self):
         self.file_path = input("Creat file name for data file. (Do not include .json)") + ".jsonc"
 
+        try:
+            self.choices[self.method_choice][0]()
+        except:
+            pass
+
         for i in range(self.loops):
             if i % 100 == 0:
                 print(i)
-            self.choices[self.method_choice][0]()
+            self.choices[self.method_choice][1]()
             if self.sum_difference < 0.001:
                 break
 
@@ -129,6 +149,7 @@ class Simulation():
         plt.show()
 
 ##########################################################################################################
+
 
 sim = Simulation()
 
