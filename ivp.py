@@ -36,8 +36,6 @@ class Simulation():
         self.c_1 = self.k / self.delta_x**2
         self.c_2 = self.M * self.delta_t / self.delta_x**2
         self.length = self.size ** 2
-        # self.c_1 = self.k / self.delta_x ** 2 * self.a
-        # self.c_2 = self.M * self.delta_t / self.delta_x ** 2
         self.phi_initial = 0
 
         self.size = Simulation.ParseInput("Specify the size of the lattice: ", int)
@@ -69,7 +67,8 @@ class Simulation():
         else:
             return Simulation.ParseChoices(prompt, options)
 
-
+    # The main update loop for the Cahn-Hilliard equation
+    # Uses roll to vectorize
     def Update(self):
         mu = self.a * self.phi_0 * (-1 + self.phi_0**2) \
                     - self.c_1 * (np.roll(self.phi_0, -1, axis=1) + np.roll(self.phi_0, 1, axis=1) \
@@ -80,7 +79,7 @@ class Simulation():
                 + np.roll(mu, 1, axis=0) + np.roll(mu, -1, axis=0) - 4 * mu)
 
 
-################### Function which control the live visualization #########################################################################
+################### Functions which control the live visualization #########################################################################
 
     def VisualizationUpdate(self):
         figure, self.data_points = Simulation.CreateFigure(self.size)
@@ -108,8 +107,9 @@ class Simulation():
             if i % 100 == 0:
                 yield self.phi_0
 
-#################### Function which control the data collection ###############################################################
+#################### Functions which control the data collection ###############################################################
 
+    # Loops through the update function and saves free-energy data every 100 loops
     def DataCollectionUpdate(self):
         self.file_path = input("Creat file name for data file. (Do not include .json)") + ".jsonc"
         self.json_object[TIME] = np.arange(0,self.loops,100).tolist()
