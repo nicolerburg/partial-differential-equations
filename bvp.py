@@ -39,8 +39,12 @@ class Simulation():
 
         self.center = int(self.size/2)
         self.charges = np.zeros((self.size,self.size, self.size))
-        self.charges[self.center][self.center][self.center] = 1
-
+        if self.type == "W":
+            for k in range(self.size):
+                self.charges[self.center][self.center][k] = 1
+        elif self.type == "C":
+            self.charges[self.center][self.center][self.center] = 1
+            
         try:
             self.choices[self.method_choice][0]()
         except:
